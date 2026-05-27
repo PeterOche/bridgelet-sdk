@@ -8,7 +8,6 @@ import { StellarService } from '../stellar/stellar.service.js';
 import { JwtService } from '@nestjs/jwt';
 import * as crypto from 'crypto';
 import { ConfigService } from '@nestjs/config';
-import { PaymentMonitorProvider } from '../stellar/providers/payment-monitor-provider.js';
 import { AccountStatus } from './enums/account-status.enum.js';
 
 /**
