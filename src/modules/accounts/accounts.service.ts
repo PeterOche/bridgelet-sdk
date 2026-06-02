@@ -100,7 +100,7 @@ export class AccountsService {
     private stellarService: StellarService,
   ) {
     this.ENCRYPTION_KEY = Buffer.from(
-      this.configService.getOrThrow<string>('app.encryptionKey'),
+      this.configService.getOrThrow<string>('stellar.encryptionKey'),
       'hex',
     );
   }
