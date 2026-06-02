@@ -1,6 +1,6 @@
 import { Test, TestingModule } from '@nestjs/testing';
 import { ConfigService } from '@nestjs/config';
-import { StellarService } from './stellar.service';
+import { StellarService } from './stellar.service.js';
 
 const mockConfigService = {
   getOrThrow: (key: string): string => {
