@@ -20,9 +20,10 @@ export class StellarServiceExample {
    *
    * ✅  Correct pattern: catch Soroban error → extract message → throwContractError.
    */
-  async sweepAccount(accountId: string): Promise<void> {
+  sweepAccount(accountId: string): void {
     try {
       // await this.sorobanClient.sweep(accountId);
+      //   this is an async method
     } catch (err: unknown) {
       const raw = err instanceof Error ? err.message : String(err);
       this.logger.warn(`Contract error during sweep for ${accountId}: ${raw}`);
@@ -35,12 +36,15 @@ export class StellarServiceExample {
    *
    * ✅  Same pattern — any Soroban failure goes through the mapper.
    */
-  async recordAsset(accountId: string, assetCode: string): Promise<void> {
+  recordAsset(accountId: string, assetCode: string): void {
     try {
       // await this.sorobanClient.recordAsset(accountId, assetCode);
+      //   this is an async method
     } catch (err: unknown) {
       const raw = err instanceof Error ? err.message : String(err);
-      this.logger.warn(`Contract error recording asset ${assetCode} on ${accountId}: ${raw}`);
+      this.logger.warn(
+        `Contract error recording asset ${assetCode} on ${accountId}: ${raw}`,
+      );
       throwContractError(raw);
     }
   }
@@ -50,9 +54,10 @@ export class StellarServiceExample {
    *
    * ✅  NotExpired (409 Conflict) will surface correctly — no ad-hoc string check needed.
    */
-  async expireAccount(accountId: string): Promise<void> {
+  expireAccount(accountId: string): void {
     try {
       // await this.sorobanClient.expire(accountId);
+      //   this is an async method
     } catch (err: unknown) {
       const raw = err instanceof Error ? err.message : String(err);
       this.logger.warn(`Contract error expiring account ${accountId}: ${raw}`);
@@ -66,12 +71,18 @@ export class StellarServiceExample {
    * ✅  UnauthorizedDestination (403) and AccountAlreadySwept (410) are handled
    *     automatically — no ad-hoc conditionals required.
    */
-  async updateSweepDestination(accountId: string, destination: string): Promise<void> {
+  updateSweepDestination(
+    accountId: string,
+    // destination: string,
+  ): void {
     try {
       // await this.sweepController.setDestination(accountId, destination);
+      //   this is an async method
     } catch (err: unknown) {
       const raw = err instanceof Error ? err.message : String(err);
-      this.logger.warn(`Contract error updating destination for ${accountId}: ${raw}`);
+      this.logger.warn(
+        `Contract error updating destination for ${accountId}: ${raw}`,
+      );
       throwContractError(raw);
     }
   }

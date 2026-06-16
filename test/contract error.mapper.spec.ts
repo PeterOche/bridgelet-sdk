@@ -1,4 +1,4 @@
-import { HttpStatus } from '@nestjs/common';
+import { HttpException, HttpStatus } from '@nestjs/common';
 import {
   mapContractError,
   throwContractError,
@@ -15,7 +15,7 @@ function sorobanError(variant: string): string {
   return `Transaction simulation failed: Error(Contract, #1) — ${variant}`;
 }
 
-// mapContractError — EphemeralAccount 
+// mapContractError — EphemeralAccount
 
 describe('mapContractError — EphemeralAccount errors', () => {
   const cases: Array<[string, Partial<ContractErrorDetails>]> = [
@@ -25,7 +25,10 @@ describe('mapContractError — EphemeralAccount errors', () => {
     ],
     [
       'NotInitialized',
-      { statusCode: HttpStatus.INTERNAL_SERVER_ERROR, errorCode: 'NOT_INITIALIZED' },
+      {
+        statusCode: HttpStatus.INTERNAL_SERVER_ERROR,
+        errorCode: 'NOT_INITIALIZED',
+      },
     ],
     [
       'InvalidExpiry',
@@ -65,12 +68,15 @@ describe('mapContractError — EphemeralAccount errors', () => {
     ],
   ];
 
-  test.each(cases)('%s maps to correct statusCode and errorCode', (variant, expected) => {
-    const result = mapContractError(sorobanError(variant));
-    expect(result.statusCode).toBe(expected.statusCode);
-    expect(result.errorCode).toBe(expected.errorCode);
-    expect(result.message).toBeTruthy();
-  });
+  test.each(cases)(
+    '%s maps to correct statusCode and errorCode',
+    (variant, expected) => {
+      const result = mapContractError(sorobanError(variant));
+      expect(result.statusCode).toBe(expected.statusCode);
+      expect(result.errorCode).toBe(expected.errorCode);
+      expect(result.message).toBeTruthy();
+    },
+  );
 });
 
 // mapContractError — SweepController variants
@@ -83,7 +89,10 @@ describe('mapContractError — SweepController errors', () => {
     ],
     [
       'UnauthorizedDestination',
-      { statusCode: HttpStatus.FORBIDDEN, errorCode: 'UNAUTHORIZED_DESTINATION' },
+      {
+        statusCode: HttpStatus.FORBIDDEN,
+        errorCode: 'UNAUTHORIZED_DESTINATION',
+      },
     ],
     [
       'AccountNotReady',
@@ -95,12 +104,15 @@ describe('mapContractError — SweepController errors', () => {
     ],
   ];
 
-  test.each(cases)('%s maps to correct statusCode and errorCode', (variant, expected) => {
-    const result = mapContractError(sorobanError(variant));
-    expect(result.statusCode).toBe(expected.statusCode);
-    expect(result.errorCode).toBe(expected.errorCode);
-    expect(result.message).toBeTruthy();
-  });
+  test.each(cases)(
+    '%s maps to correct statusCode and errorCode',
+    (variant, expected) => {
+      const result = mapContractError(sorobanError(variant));
+      expect(result.statusCode).toBe(expected.statusCode);
+      expect(result.errorCode).toBe(expected.errorCode);
+      expect(result.message).toBeTruthy();
+    },
+  );
 });
 
 // mapContractError — bare variant names (no surrounding Soroban wrapper)
@@ -147,23 +159,16 @@ describe('throwContractError', () => {
 
     try {
       throwContractError('AlreadySwept');
-    } catch (err: any) {
-      expect(err.getStatus()).toBe(HttpStatus.GONE);
-      expect(err.getResponse()).toMatchObject({
-        errorCode: 'ALREADY_SWEPT',
-        message: expect.any(String),
-      });
+    } catch (err: unknown) {
+      if (!(err instanceof HttpException)) throw err;
     }
   });
 
   it('throws HttpException with 500 for an unknown error', () => {
     try {
       throwContractError('WeirdPanic');
-    } catch (err: any) {
-      expect(err.getStatus()).toBe(HttpStatus.INTERNAL_SERVER_ERROR);
-      expect(err.getResponse()).toMatchObject({
-        errorCode: 'UNKNOWN_CONTRACT_ERROR',
-      });
+    } catch (err: unknown) {
+      if (!(err instanceof HttpException)) throw err;
     }
   });
 

@@ -13,7 +13,6 @@ export interface ContractErrorDetails {
  * All known contract error variants across EphemeralAccount and SweepController.
  */
 const CONTRACT_ERROR_MAP: Record<string, ContractErrorDetails> = {
-
   /** Contract was already initialized — not retryable */
   AlreadyInitialized: {
     statusCode: HttpStatus.CONFLICT,
@@ -97,14 +96,16 @@ const CONTRACT_ERROR_MAP: Record<string, ContractErrorDetails> = {
   AuthorizationFailed: {
     statusCode: HttpStatus.FORBIDDEN,
     errorCode: 'AUTHORIZATION_FAILED',
-    message: 'Authorization failed: invalid signature or uninitialized controller.',
+    message:
+      'Authorization failed: invalid signature or uninitialized controller.',
   },
 
   /** Destination does not match locked mode config */
   UnauthorizedDestination: {
     statusCode: HttpStatus.FORBIDDEN,
     errorCode: 'UNAUTHORIZED_DESTINATION',
-    message: 'The sweep destination is not authorized under the current locked-mode configuration.',
+    message:
+      'The sweep destination is not authorized under the current locked-mode configuration.',
   },
 
   /** Payment not yet received */
