@@ -106,7 +106,13 @@ npm install
 cp .env.example .env
 # Edit .env with your configuration
 
-# Run migrations
+# Run database migrations
+# DataSource config : src/config/typeorm.config.ts
+# Migrations        : src/database/migrations/
+#   1718100000000-CreateAccountsTable           (accounts table, status enum, expiredAt, metadata)
+#   1718100001000-CreateClaimsTable              (claims table + FK to accounts)
+#   1718100002000-AddInitializingToAccountStatus (adds INITIALIZING to account_status enum)
+#   1718100003000-CreateWebhooksTable            (webhooks table)
 npm run migration:run
 
 # Start development server
