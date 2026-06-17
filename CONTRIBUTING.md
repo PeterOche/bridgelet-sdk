@@ -138,6 +138,7 @@ git commit -m "wip"
 - [ ] Build succeeds (`npm run build`)
 - [ ] Only relevant files are modified
 - [ ] No commented-out code added (unless marked as `TEMPORARY:` per project conventions)
+- [ ] Coverage threshold passes (`npm run test:cov`)
 
 ### PR Title Format
 
