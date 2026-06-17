@@ -9,6 +9,7 @@ import { JwtService } from '@nestjs/jwt';
 import * as crypto from 'crypto';
 import { ConfigService } from '@nestjs/config';
 import { AccountStatus } from './enums/account-status.enum.js';
+import { SecretEncryptionUtil } from '../../common/crypto/secret-encryption.util.js';
 
 /**
  * AccountsService — Service-Level Documentation & Contributor Guidance
@@ -98,11 +99,14 @@ export class AccountsService {
     private configService: ConfigService,
     private jwtService: JwtService,
     private stellarService: StellarService,
+    private readonly encryptionKey: string,
   ) {
     this.ENCRYPTION_KEY = Buffer.from(
       this.configService.getOrThrow<string>('stellar.encryptionKey'),
       'hex',
     );
+    this.encryptionKey =
+      this.configService.getOrThrow<string>('app.encryptionKey');
   }
 
   public async create(
@@ -127,7 +131,10 @@ export class AccountsService {
     // if the Stellar/contract steps fail
     const account = this.accountsRepository.create({
       publicKey: ephemeralKeypair.publicKey(),
-      secretKeyEncrypted: this.encryptSecret(ephemeralKeypair.secret()),
+      secretKeyEncrypted: SecretEncryptionUtil.encrypt(
+        ephemeralKeypair.secret(),
+        this.encryptionKey,
+      ),
       fundingSource: createAccountDto.fundingSource,
       amount: createAccountDto.amount,
       asset: createAccountDto.asset,
@@ -251,23 +258,6 @@ export class AccountsService {
     //   systems and email templates may rely on the shape of this URL.
     const baseUrl = process.env.CLAIM_BASE_URL || 'https://claim.bridgelet.io';
     return `${baseUrl}/c/${token}`;
-  }
-
-  private encryptSecret(secret: string): string {
-    const iv = crypto.randomBytes(this.IV_LENGTH);
-    const cipher = crypto.createCipheriv(
-      'aes-256-gcm',
-      this.ENCRYPTION_KEY,
-      iv,
-    );
-
-    const encrypted = Buffer.concat([
-      cipher.update(secret, 'utf8'),
-      cipher.final(),
-    ]);
-    const authTag = cipher.getAuthTag();
-
-    return `${iv.toString('hex')}:${authTag.toString('hex')}:${encrypted.toString('hex')}`;
   }
 
   /**
