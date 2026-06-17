@@ -154,7 +154,7 @@ export class AccountsService {
         expiresIn: createAccountDto.expiresIn,
         recoveryAddress: createAccountDto.fundingSource,
         contractId: this.configService.getOrThrow<string>(
-          'stellar.ephemeralContractId',
+          'stellar.contracts.ephemeralAccount',
         ),
       });
 
