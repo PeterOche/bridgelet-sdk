@@ -127,13 +127,21 @@ npm test
 ## or to run specific tests
 npm test -- test_Service_File_Name
 
-##e.g
+## e.g
 npm test -- sweeps.service.spec.ts
 ```
 
 ### Coverage
 
-e.g
+Run the full coverage report (enforces 80% minimum threshold):
+
+```bash
+npm run test:cov
+```
+
+Coverage reports are generated in the `coverage/` directory. The build will fail if any metric (branches, functions, lines, statements) falls below 80%.
+
+To check coverage for a specific file:
 
 ```bash
 npm test -- sweeps.service.spec.ts --coverage
