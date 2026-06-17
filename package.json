@@ -104,7 +104,7 @@
       "^(\\.{1,2}/.*)\\.js$": "$1"
     },
     "collectCoverageFrom": [
-    "**/*.(t|j)s",
+      "**/*.(t|j)s",
       "!main.ts",
       "!**/*.module.ts",
       "!**/*.entity.ts",
