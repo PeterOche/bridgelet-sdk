@@ -7,6 +7,8 @@ import { Claim } from '../entities/claim.entity.js';
 import { Account } from '../../accounts/entities/account.entity.js';
 import { SweepsService } from '../../sweeps/sweeps.service.js';
 import { AccountStatus } from '../../accounts/enums/account-status.enum.js';
+import { ConfigService } from '@nestjs/config';
+import { SecretEncryptionUtil } from '../../../common/crypto/secret-encryption.util.js';
 
 describe('ClaimRedemptionProvider', () => {
   let provider: ClaimRedemptionProvider;
@@ -85,9 +87,19 @@ describe('ClaimRedemptionProvider', () => {
           provide: SweepsService,
           useValue: mockSweepsService,
         },
+        {
+          provide: ConfigService,
+          useValue: {
+            get: jest.fn().mockReturnValue('mock-value'),
+            getOrThrow: jest.fn().mockReturnValue(
+              'a'.repeat(64), // 64 hex chars = 32 bytes
+            ),
+          },
+        },
       ],
     }).compile();
 
+    jest.spyOn(SecretEncryptionUtil, 'decrypt').mockReturnValue('test-secret');
     provider = module.get<ClaimRedemptionProvider>(ClaimRedemptionProvider);
 
     // Default happy-path mocks shared across tests
