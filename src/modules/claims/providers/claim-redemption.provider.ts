@@ -13,6 +13,8 @@ import { ClaimRedemptionResponseDto } from '../dto/claim-redemption-response.dto
 import { SweepsService } from '../../sweeps/sweeps.service.js';
 import { TokenVerificationProvider } from './token-verification.provider.js';
 import { AccountStatus } from '../../accounts/enums/account-status.enum.js';
+import { SecretEncryptionUtil } from '../../../common/crypto/secret-encryption.util.js';
+import { ConfigService } from '@nestjs/config';
 
 @Injectable()
 export class ClaimRedemptionProvider {
@@ -25,6 +27,7 @@ export class ClaimRedemptionProvider {
     private accountsRepository: Repository<Account>,
     private tokenVerificationProvider: TokenVerificationProvider,
     private sweepsService: SweepsService,
+    private configService: ConfigService,
     // TEMPORARY: WebhooksService not yet implemented - commented out to allow dev server to start
     // private webhooksService: WebhooksService,
   ) {}
@@ -115,7 +118,11 @@ export class ClaimRedemptionProvider {
       const sweepResult = await this.sweepsService.executeSweep({
         accountId: account.id,
         ephemeralPublicKey: account.publicKey,
-        ephemeralSecret: this.decryptSecret(account.secretKeyEncrypted),
+        ephemeralSecret: SecretEncryptionUtil.decrypt(
+          account.secretKeyEncrypted,
+          this.configService.getOrThrow<string>('app.encryptionKey'),
+        ),
+
         destinationAddress,
         amount: account.amount,
         asset: account.asset,
@@ -190,11 +197,5 @@ export class ClaimRedemptionProvider {
 
   private hashToken(token: string): string {
     return crypto.createHash('sha256').update(token).digest('hex');
-  }
-
-  private decryptSecret(encrypted: string): string {
-    // TODO: Implement proper decryption (AES-256)
-    // For MVP, using base64 (NOT SECURE for production)
-    return Buffer.from(encrypted, 'base64').toString('utf-8');
   }
 }
