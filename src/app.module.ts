@@ -13,6 +13,7 @@ import { HealthModule } from './modules/health/health.module.js';
 import { AppController } from './app.controller.js';
 import { AppService } from './app.service.js';
 import { SweepsModule } from './modules/sweeps/sweeps.module.js';
+import { SchedulerModule } from './modules/scheduler/scheduler.module.js';
 
 @Module({
   imports: [
@@ -40,6 +41,7 @@ import { SweepsModule } from './modules/sweeps/sweeps.module.js';
     // WebhooksModule,
     StellarModule,
     HealthModule,
+    SchedulerModule,
   ],
   controllers: [AppController],
   providers: [AppService],
