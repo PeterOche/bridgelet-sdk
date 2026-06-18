@@ -282,11 +282,9 @@ describe('PaymentMonitorService', () => {
       const account = makeAccount();
       const payment = makePaymentRecord();
 
-      (
-        stellarService.recordPayment as jest.MockedFunction<
-          StellarService['recordPayment']
-        >
-      ).mockRejectedValueOnce(new Error('DuplicateAsset'));
+      stellarService.recordPayment.mockRejectedValueOnce(
+        new Error('DuplicateAsset'),
+      );
 
       await expect(
         service.processPayment(account, payment),

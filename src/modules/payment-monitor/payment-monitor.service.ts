@@ -105,7 +105,7 @@ export class PaymentMonitorService implements OnModuleInit, OnModuleDestroy {
     const cutoff = account.createdAt.toISOString();
 
     for (const record of page.records) {
-      if (record.type !== 'payment') continue;
+      if ((record.type as string) !== 'payment') continue;
       const payment =
         record as StellarSdk.Horizon.ServerApi.PaymentOperationRecord;
       if (payment.to !== account.publicKey) continue;
@@ -168,7 +168,7 @@ export class PaymentMonitorService implements OnModuleInit, OnModuleDestroy {
     const asset =
       record.asset_type === 'native'
         ? StellarSdk.Asset.native()
-        : new StellarSdk.Asset(record.asset_code!, record.asset_issuer!);
+        : new StellarSdk.Asset(record.asset_code!, record.asset_issuer);
 
     return asset.contractId(networkPassphrase);
   }
