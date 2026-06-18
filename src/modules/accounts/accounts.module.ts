@@ -25,7 +25,7 @@ import { PaymentMonitorProvider } from '../stellar/providers/payment-monitor-pro
   ],
   controllers: [AccountsController],
   providers: [AccountsService, PaymentMonitorProvider],
-  exports: [AccountsService],
+  exports: [AccountsService, JwtModule],
 })
 
 // Note: seeing as PaymentMonitorPRovider is a sub provider in stellar service, this should be adjusted to fit that. Probably call stellatService.PaymentMonitorProvider in the constructor after wiring it up

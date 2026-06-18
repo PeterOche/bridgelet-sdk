@@ -1,5 +1,6 @@
-import { Controller, Get, Param, Post, Body } from '@nestjs/common';
+import { Controller, Get, Param, Post, Body, UseGuards } from '@nestjs/common';
 import { ApiOperation, ApiResponse, ApiTags, ApiParam } from '@nestjs/swagger';
+import { ThrottlerGuard } from '@nestjs/throttler';
 import { ClaimsService } from './claims.service.js';
 import { ClaimDetailsDto } from './dto/claim-details.dto.js';
 import { VerifyClaimDto } from './dto/verify-claim.dto.js';
@@ -9,6 +10,7 @@ import { ClaimVerificationResponseDto } from './dto/claim-verification-response.
 
 @ApiTags('claims')
 @Controller('claims')
+@UseGuards(ThrottlerGuard)
 export class ClaimsController {
   constructor(private readonly claimsService: ClaimsService) {}
 
