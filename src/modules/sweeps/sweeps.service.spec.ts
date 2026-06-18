@@ -154,12 +154,10 @@ describe('SweepsService', () => {
 
     it('calls validation before the contract call', async () => {
       const order: string[] = [];
-      validationProvider.validateSweepParameters.mockImplementation(
-        async () => {
-          order.push('validate');
-        },
-      );
-      stellarService.executeSweep.mockImplementation(async () => {
+      validationProvider.validateSweepParameters.mockImplementation(() => {
+        order.push('validate');
+      });
+      stellarService.executeSweep.mockImplementation(() => {
         order.push('contract');
       });
 
@@ -170,15 +168,13 @@ describe('SweepsService', () => {
 
     it('calls the contract before the Horizon payment', async () => {
       const order: string[] = [];
-      stellarService.executeSweep.mockImplementation(async () => {
+      stellarService.executeSweep.mockImplementation(() => {
         order.push('contract');
       });
-      transactionProvider.executeSweepTransaction.mockImplementation(
-        async () => {
-          order.push('payment');
-          return mockTxResult;
-        },
-      );
+      transactionProvider.executeSweepTransaction.mockImplementation(() => {
+        order.push('payment');
+        return mockTxResult;
+      });
 
       await service.executeSweep(validRequest);
 
