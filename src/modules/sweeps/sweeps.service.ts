@@ -48,8 +48,9 @@ export class SweepsService {
     });
 
     // Step 3: Submit execute_sweep() on the SweepController Soroban contract
-    const sweepControllerContractId =
-      this.configService.getOrThrow<string>('stellar.contracts.sweepController');
+    const sweepControllerContractId = this.configService.getOrThrow<string>(
+      'stellar.contracts.sweepController',
+    );
     const ephemeralAccountContractId = this.configService.getOrThrow<string>(
       'stellar.contracts.ephemeralAccount',
     );

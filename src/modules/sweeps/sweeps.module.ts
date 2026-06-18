@@ -9,7 +9,12 @@ import { StellarModule } from '../stellar/stellar.module.js';
 
 @Module({
   imports: [TypeOrmModule.forFeature([Account]), StellarModule],
-  providers: [SweepsService, ValidationProvider, ContractProvider, TransactionProvider],
+  providers: [
+    SweepsService,
+    ValidationProvider,
+    ContractProvider,
+    TransactionProvider,
+  ],
   exports: [SweepsService],
 })
 export class SweepsModule {}

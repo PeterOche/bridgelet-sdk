@@ -17,9 +17,11 @@ const MOCK_CONTRACT_AUTH_HASH = 'deadbeef'.repeat(8); // 64-char hex
 
 const validRequest = {
   accountId: 'test-account-id',
-  ephemeralPublicKey: 'GEPH47IF6LWK7P7MDEVSCWR7DPUWV3NY3DTQEVFL4NAT4AQH3ZLLFLA5',
+  ephemeralPublicKey:
+    'GEPH47IF6LWK7P7MDEVSCWR7DPUWV3NY3DTQEVFL4NAT4AQH3ZLLFLA5',
   ephemeralSecret: 'SEPH47IF6LWK7P7MDEVSCWR7DPUWV3NY3DTQEVFL4NAT4AQH3ZLLFLA5',
-  destinationAddress: 'GDEST47IF6LWK7P7MDEVSCWR7DPUWV3NY3DTQEVFL4NAT4AQH3ZLLFLA5',
+  destinationAddress:
+    'GDEST47IF6LWK7P7MDEVSCWR7DPUWV3NY3DTQEVFL4NAT4AQH3ZLLFLA5',
   amount: '100.0000000',
   asset: 'native',
 };
@@ -38,25 +40,42 @@ const mockTxResult = {
 describe('SweepsService', () => {
   let service: SweepsService;
 
-  let validationProvider: { validateSweepParameters: jest.Mock; canSweep: jest.Mock; getSweepStatus: jest.Mock };
-  let contractProvider: { generateAuthSignature: jest.Mock; generateAuthHash: jest.Mock };
+  let validationProvider: {
+    validateSweepParameters: jest.Mock;
+    canSweep: jest.Mock;
+    getSweepStatus: jest.Mock;
+  };
+  let contractProvider: {
+    generateAuthSignature: jest.Mock;
+    generateAuthHash: jest.Mock;
+  };
   let transactionProvider: { executeSweepTransaction: jest.Mock };
   let stellarService: { executeSweep: jest.Mock };
 
   beforeEach(async () => {
     validationProvider = {
-      validateSweepParameters: jest.fn<() => Promise<void>>().mockResolvedValue(undefined),
+      validateSweepParameters: jest
+        .fn<() => Promise<void>>()
+        .mockResolvedValue(undefined),
       canSweep: jest.fn<() => Promise<boolean>>().mockResolvedValue(true),
-      getSweepStatus: jest.fn<() => Promise<{ canSweep: boolean }>>().mockResolvedValue({ canSweep: true }),
+      getSweepStatus: jest
+        .fn<() => Promise<{ canSweep: boolean }>>()
+        .mockResolvedValue({ canSweep: true }),
     };
 
     contractProvider = {
-      generateAuthSignature: jest.fn<() => Buffer>().mockReturnValue(MOCK_AUTH_SIGNATURE),
-      generateAuthHash: jest.fn<() => string>().mockReturnValue(MOCK_CONTRACT_AUTH_HASH),
+      generateAuthSignature: jest
+        .fn<() => Buffer>()
+        .mockReturnValue(MOCK_AUTH_SIGNATURE),
+      generateAuthHash: jest
+        .fn<() => string>()
+        .mockReturnValue(MOCK_CONTRACT_AUTH_HASH),
     };
 
     transactionProvider = {
-      executeSweepTransaction: jest.fn<() => Promise<typeof mockTxResult>>().mockResolvedValue(mockTxResult),
+      executeSweepTransaction: jest
+        .fn<() => Promise<typeof mockTxResult>>()
+        .mockResolvedValue(mockTxResult),
     };
 
     stellarService = {
@@ -99,7 +118,9 @@ describe('SweepsService', () => {
   describe('executeSweep — happy path', () => {
     it('calls validation first', async () => {
       await service.executeSweep(validRequest);
-      expect(validationProvider.validateSweepParameters).toHaveBeenCalledWith(validRequest);
+      expect(validationProvider.validateSweepParameters).toHaveBeenCalledWith(
+        validRequest,
+      );
     });
 
     it('generates auth signature via ContractProvider', async () => {
@@ -133,8 +154,14 @@ describe('SweepsService', () => {
 
     it('calls validation before the contract call', async () => {
       const order: string[] = [];
-      validationProvider.validateSweepParameters.mockImplementation(async () => { order.push('validate'); });
-      stellarService.executeSweep.mockImplementation(async () => { order.push('contract'); });
+      validationProvider.validateSweepParameters.mockImplementation(
+        async () => {
+          order.push('validate');
+        },
+      );
+      stellarService.executeSweep.mockImplementation(async () => {
+        order.push('contract');
+      });
 
       await service.executeSweep(validRequest);
 
@@ -143,8 +170,15 @@ describe('SweepsService', () => {
 
     it('calls the contract before the Horizon payment', async () => {
       const order: string[] = [];
-      stellarService.executeSweep.mockImplementation(async () => { order.push('contract'); });
-      transactionProvider.executeSweepTransaction.mockImplementation(async () => { order.push('payment'); return mockTxResult; });
+      stellarService.executeSweep.mockImplementation(async () => {
+        order.push('contract');
+      });
+      transactionProvider.executeSweepTransaction.mockImplementation(
+        async () => {
+          order.push('payment');
+          return mockTxResult;
+        },
+      );
 
       await service.executeSweep(validRequest);
 
@@ -179,16 +213,24 @@ describe('SweepsService', () => {
         new Error('Validation failed'),
       );
 
-      await expect(service.executeSweep(validRequest)).rejects.toThrow('Validation failed');
+      await expect(service.executeSweep(validRequest)).rejects.toThrow(
+        'Validation failed',
+      );
       expect(stellarService.executeSweep).not.toHaveBeenCalled();
-      expect(transactionProvider.executeSweepTransaction).not.toHaveBeenCalled();
+      expect(
+        transactionProvider.executeSweepTransaction,
+      ).not.toHaveBeenCalled();
     });
 
     it('propagates StellarService.executeSweep() errors and does not call Horizon payment', async () => {
       stellarService.executeSweep.mockRejectedValue(new Error('ALREADY_SWEPT'));
 
-      await expect(service.executeSweep(validRequest)).rejects.toThrow('ALREADY_SWEPT');
-      expect(transactionProvider.executeSweepTransaction).not.toHaveBeenCalled();
+      await expect(service.executeSweep(validRequest)).rejects.toThrow(
+        'ALREADY_SWEPT',
+      );
+      expect(
+        transactionProvider.executeSweepTransaction,
+      ).not.toHaveBeenCalled();
     });
 
     it('propagates TransactionProvider errors', async () => {
@@ -196,7 +238,9 @@ describe('SweepsService', () => {
         new Error('Horizon payment failed'),
       );
 
-      await expect(service.executeSweep(validRequest)).rejects.toThrow('Horizon payment failed');
+      await expect(service.executeSweep(validRequest)).rejects.toThrow(
+        'Horizon payment failed',
+      );
     });
   });
 
@@ -208,16 +252,24 @@ describe('SweepsService', () => {
     it('delegates to ValidationProvider', async () => {
       validationProvider.canSweep.mockResolvedValue(true);
       const result = await service.canSweep('account-id', 'GDEST...');
-      expect(validationProvider.canSweep).toHaveBeenCalledWith('account-id', 'GDEST...');
+      expect(validationProvider.canSweep).toHaveBeenCalledWith(
+        'account-id',
+        'GDEST...',
+      );
       expect(result).toBe(true);
     });
   });
 
   describe('getSweepStatus', () => {
     it('delegates to ValidationProvider', async () => {
-      validationProvider.getSweepStatus.mockResolvedValue({ canSweep: false, reason: 'expired' });
+      validationProvider.getSweepStatus.mockResolvedValue({
+        canSweep: false,
+        reason: 'expired',
+      });
       const result = await service.getSweepStatus('account-id');
-      expect(validationProvider.getSweepStatus).toHaveBeenCalledWith('account-id');
+      expect(validationProvider.getSweepStatus).toHaveBeenCalledWith(
+        'account-id',
+      );
       expect(result).toEqual({ canSweep: false, reason: 'expired' });
     });
   });
