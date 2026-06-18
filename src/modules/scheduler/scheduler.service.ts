@@ -158,13 +158,15 @@ export class SchedulerService implements OnModuleInit, OnModuleDestroy {
 
   private async markInitializingFailed(account: Account): Promise<void> {
     try {
+      // Explicit typed variable avoids TypeORM _QueryDeepPartialEntity inference on jsonb spread
+      const metadata: Record<string, any> = {
+        ...(account.metadata ?? {}),
+        failureReason: 'initialization_timeout',
+        detectedAt: new Date().toISOString(),
+      };
       await this.accountsRepository.update(account.id, {
         status: AccountStatus.FAILED,
-        metadata: {
-          ...account.metadata,
-          failureReason: 'initialization_timeout',
-          detectedAt: new Date().toISOString(),
-        },
+        metadata,
       });
       this.logger.warn(
         `Account ${account.id} status → FAILED (initialization_timeout)`,
