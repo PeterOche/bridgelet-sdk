@@ -199,7 +199,10 @@ describe('SchedulerService', () => {
       expect(stellarService.expireAccount).toHaveBeenCalledTimes(2);
       // Only the successful one gets a DB update
       expect(accountsRepo.update).toHaveBeenCalledTimes(1);
-      expect(accountsRepo.update).toHaveBeenCalledWith('a2', expect.any(Object));
+      expect(accountsRepo.update).toHaveBeenCalledWith(
+        'a2',
+        expect.any(Object),
+      );
     });
 
     it('does not throw when the DB query itself fails', async () => {
