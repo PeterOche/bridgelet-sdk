@@ -142,7 +142,7 @@ export class ContractProvider {
    * See: bridgelet-core/contracts/ephemeral_account/src/lib.rs verify_sweep_authorization()
    * See: bridgelet-core/contracts/sweep_controller/src/authorization.rs
    */
-  private generateAuthSignature(params: AuthorizeSweepParams): Buffer {
+  public generateAuthSignature(params: AuthorizeSweepParams): Buffer {
     const isDevelopmentOrTest = ['development', 'test'].includes(
       process.env.NODE_ENV ?? '',
     );
