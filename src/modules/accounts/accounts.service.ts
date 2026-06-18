@@ -90,8 +90,7 @@ import { SecretEncryptionUtil } from '../../common/crypto/secret-encryption.util
 @Injectable()
 export class AccountsService {
   private readonly logger = new Logger(AccountsService.name);
-  private readonly ENCRYPTION_KEY: Buffer;
-  private readonly IV_LENGTH = 16;
+  private readonly encryptionKey: string;
 
   constructor(
     @InjectRepository(Account)
@@ -99,14 +98,10 @@ export class AccountsService {
     private configService: ConfigService,
     private jwtService: JwtService,
     private stellarService: StellarService,
-    private readonly encryptionKey: string,
   ) {
-    this.ENCRYPTION_KEY = Buffer.from(
-      this.configService.getOrThrow<string>('stellar.encryptionKey'),
-      'hex',
+    this.encryptionKey = this.configService.getOrThrow<string>(
+      'stellar.encryptionKey',
     );
-    this.encryptionKey =
-      this.configService.getOrThrow<string>('app.encryptionKey');
   }
 
   public async create(
@@ -258,29 +253,6 @@ export class AccountsService {
     //   systems and email templates may rely on the shape of this URL.
     const baseUrl = process.env.CLAIM_BASE_URL || 'https://claim.bridgelet.io';
     return `${baseUrl}/c/${token}`;
-  }
-
-  /**
-   * Decrypts a secret key encrypted by encryptSecret().
-   * Required when the claims module needs to sign sweep transactions
-   * using the ephemeral account's secret.
-   */
-  private decryptSecret(encrypted: string): string {
-    const [ivHex, authTagHex, dataHex] = encrypted.split(':');
-    const iv = Buffer.from(ivHex, 'hex');
-    const authTag = Buffer.from(authTagHex, 'hex');
-    const data = Buffer.from(dataHex, 'hex');
-
-    const decipher = crypto.createDecipheriv(
-      'aes-256-gcm',
-      this.ENCRYPTION_KEY,
-      iv,
-    );
-    decipher.setAuthTag(authTag);
-
-    return Buffer.concat([decipher.update(data), decipher.final()]).toString(
-      'utf8',
-    );
   }
 
   private mapToResponseDto(account: Account): AccountResponseDto {

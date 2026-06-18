@@ -185,11 +185,7 @@ describe('SchedulerService', () => {
       const acc2 = makeAccount({ id: 'a2', publicKey: 'GPK2' });
       accountsRepo.find.mockResolvedValueOnce([acc1, acc2]);
 
-      (
-        stellarService.expireAccount as jest.MockedFunction<
-          StellarService['expireAccount']
-        >
-      )
+      stellarService.expireAccount
         .mockRejectedValueOnce(new Error('Soroban RPC unavailable'))
         .mockResolvedValueOnce(undefined);
 
