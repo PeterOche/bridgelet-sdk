@@ -56,10 +56,9 @@ const mockPaymentsBuilder = {
 };
 
 jest.mock('@stellar/stellar-sdk', () => {
-  const actual =
-    jest.requireActual<typeof import('@stellar/stellar-sdk')>(
-      '@stellar/stellar-sdk',
-    );
+  const actual = jest.requireActual<typeof import('@stellar/stellar-sdk')>(
+    '@stellar/stellar-sdk',
+  );
   return {
     ...actual,
     Horizon: {
@@ -158,12 +157,8 @@ describe('PaymentMonitorService', () => {
 
       // Use real implementation for this test
       jest.restoreAllMocks();
-      jest
-        .spyOn(global, 'setInterval')
-        .mockReturnValue(123 as any);
-      jest
-        .spyOn(global, 'clearInterval')
-        .mockImplementation(() => undefined);
+      jest.spyOn(global, 'setInterval').mockReturnValue(123 as any);
+      jest.spyOn(global, 'clearInterval').mockImplementation(() => undefined);
 
       service.onModuleInit();
       expect(setInterval).toHaveBeenCalledTimes(1);

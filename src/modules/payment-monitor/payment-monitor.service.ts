@@ -123,8 +123,9 @@ export class PaymentMonitorService implements OnModuleInit, OnModuleDestroy {
     const contractId = this.configService.getOrThrow<string>(
       'stellar.contracts.ephemeralAccount',
     );
-    const signerSecret =
-      this.configService.getOrThrow<string>('stellar.fundingSecret');
+    const signerSecret = this.configService.getOrThrow<string>(
+      'stellar.fundingSecret',
+    );
 
     const assetAddress = this.resolveAssetAddress(record);
     const amountBigint = this.parseAmountToStroops(record.amount);
