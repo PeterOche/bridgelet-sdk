@@ -53,7 +53,7 @@ describe('ClaimRedemptionProvider', () => {
   };
 
   const mockSweepResult = {
-    txHash: 'sweep-tx-hash-abc123',
+    txHash: 'a'.repeat(64),
     success: true,
   };
 

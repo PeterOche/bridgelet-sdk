@@ -15,6 +15,7 @@ import { TokenVerificationProvider } from './token-verification.provider.js';
 import { AccountStatus } from '../../accounts/enums/account-status.enum.js';
 import { SecretEncryptionUtil } from '../../../common/crypto/secret-encryption.util.js';
 import { ConfigService } from '@nestjs/config';
+import { TransactionHashValidator } from '../../../common/validators/transaction-hash.validator.js';
 
 @Injectable()
 export class ClaimRedemptionProvider {
@@ -127,6 +128,10 @@ export class ClaimRedemptionProvider {
         amount: account.amount,
         asset: account.asset,
       });
+
+      // Guard: never persist a placeholder or invalid hash.
+      // If this throws, the outer catch block will roll back account status.
+      TransactionHashValidator.assertValid(sweepResult.txHash);
 
       // Create claim record
       const claim = this.claimsRepository.create({
