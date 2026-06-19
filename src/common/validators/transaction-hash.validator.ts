@@ -10,8 +10,8 @@
     if (!TransactionHashValidator.isValid(hash)) {
       throw new Error(
         `Invalid transaction hash: "${hash}". ` +
-        'Expected a 64-character hex string. ' +
-        'The sweep transaction may not have completed successfully.',
+          'Expected a 64-character hex string. ' +
+          'The sweep transaction may not have completed successfully.',
       );
     }
   }

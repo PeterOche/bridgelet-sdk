@@ -30,7 +30,9 @@ describe('TransactionHashValidator', () => {
     });
 
     it('accepts uppercase hex', () => {
-      expect(TransactionHashValidator.isValid(validHash.toUpperCase())).toBe(true);
+      expect(TransactionHashValidator.isValid(validHash.toUpperCase())).toBe(
+        true,
+      );
     });
   });
 
@@ -42,15 +44,15 @@ describe('TransactionHashValidator', () => {
     });
 
     it('throws for the string pending', () => {
-      expect(() =>
-        TransactionHashValidator.assertValid('pending'),
-      ).toThrow('Invalid transaction hash');
+      expect(() => TransactionHashValidator.assertValid('pending')).toThrow(
+        'Invalid transaction hash',
+      );
     });
 
     it('throws with the invalid value in the message', () => {
-      expect(() =>
-        TransactionHashValidator.assertValid('pending'),
-      ).toThrow('"pending"');
+      expect(() => TransactionHashValidator.assertValid('pending')).toThrow(
+        '"pending"',
+      );
     });
 
     it('throws for an empty string', () => {

@@ -12,7 +12,6 @@ import { Account } from '../../accounts/entities/account.entity.js';
 import { ClaimRedemptionResponseDto } from '../dto/claim-redemption-response.dto.js';
 import { SweepsService } from '../../sweeps/sweeps.service.js';
 import { TokenVerificationProvider } from './token-verification.provider.js';
-
 import { AccountStatus } from '../../accounts/enums/account-status.enum.js';
 import { SecretEncryptionUtil } from '../../../common/crypto/secret-encryption.util.js';
 import { ConfigService } from '@nestjs/config';
