@@ -55,31 +55,31 @@ describe('SweepsService', () => {
   beforeEach(async () => {
     validationProvider = {
       validateSweepParameters: jest
-        .fn<() => Promise<void>>()
+        .fn<any>()
         .mockResolvedValue(undefined),
-      canSweep: jest.fn<() => Promise<boolean>>().mockResolvedValue(true),
+      canSweep: jest.fn<any>().mockResolvedValue(true),
       getSweepStatus: jest
-        .fn<() => Promise<{ canSweep: boolean }>>()
+        .fn<any>()
         .mockResolvedValue({ canSweep: true }),
     };
 
     contractProvider = {
       generateAuthSignature: jest
-        .fn<() => Buffer>()
+        .fn<any>()
         .mockReturnValue(MOCK_AUTH_SIGNATURE),
       generateAuthHash: jest
-        .fn<() => string>()
+        .fn<any>()
         .mockReturnValue(MOCK_CONTRACT_AUTH_HASH),
     };
 
     transactionProvider = {
       executeSweepTransaction: jest
-        .fn<() => Promise<typeof mockTxResult>>()
+        .fn<any>()
         .mockResolvedValue(mockTxResult),
     };
 
     stellarService = {
-      executeSweep: jest.fn<() => Promise<void>>().mockResolvedValue(undefined),
+      executeSweep: jest.fn<any>().mockResolvedValue(undefined),
     };
 
     const configMock = {
