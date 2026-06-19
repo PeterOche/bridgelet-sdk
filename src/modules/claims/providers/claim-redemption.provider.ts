@@ -15,6 +15,7 @@ import {
 import { ClaimRedemptionResponseDto } from '../dto/claim-redemption-response.dto.js';
 import { SweepsService } from '../../sweeps/sweeps.service.js';
 import { TokenVerificationProvider } from './token-verification.provider.js';
+import { TransactionHashValidator } from '../../../common/validators/transaction-hash.validator.js';
 
 @Injectable()
 export class ClaimRedemptionProvider {
@@ -122,6 +123,10 @@ export class ClaimRedemptionProvider {
         amount: account.amount,
         asset: account.asset,
       });
+
+      // Guard: never persist a placeholder or invalid hash.
+      // If this throws, the outer catch block will roll back account status.
+      TransactionHashValidator.assertValid(sweepResult.txHash);
 
       // Create claim record
       const claim = this.claimsRepository.create({
