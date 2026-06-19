@@ -19,12 +19,13 @@ import { AccountsService } from './accounts.service.js';
 import { CreateAccountDto } from './dto/create-account.dto.js';
 import { AccountResponseDto } from './dto/account-response.dto.js';
 import { AccountsListResponseDto } from './dto/accounts-list-response.dto.js';
-import { AccountStatus } from './entities/account.entity.js';
+import { AccountStatus } from './enums/account-status.enum.js';
+import { JwtAuthGuard } from '../../common/guards/jwt-auth.guard.js';
 
 @ApiTags('accounts')
 @ApiBearerAuth()
 @Controller('accounts')
-@UseGuards(ThrottlerGuard)
+@UseGuards(ThrottlerGuard, JwtAuthGuard)
 export class AccountsController {
   constructor(private readonly accountsService: AccountsService) {}
 

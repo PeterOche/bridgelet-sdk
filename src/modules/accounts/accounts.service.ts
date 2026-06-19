@@ -1,13 +1,15 @@
-import { Injectable, NotFoundException } from '@nestjs/common';
+import { Injectable, Logger, NotFoundException } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
 import { Repository } from 'typeorm';
-import { Account, AccountStatus } from './entities/account.entity.js';
+import { Account } from './entities/account.entity.js';
 import { CreateAccountDto } from './dto/create-account.dto.js';
 import { AccountResponseDto } from './dto/account-response.dto.js';
 import { StellarService } from '../stellar/stellar.service.js';
 import { JwtService } from '@nestjs/jwt';
 import * as crypto from 'crypto';
 import { ConfigService } from '@nestjs/config';
+import { AccountStatus } from './enums/account-status.enum.js';
+import { SecretEncryptionUtil } from '../../common/crypto/secret-encryption.util.js';
 
 /**
  * AccountsService — Service-Level Documentation & Contributor Guidance
@@ -87,13 +89,20 @@ import { ConfigService } from '@nestjs/config';
  */
 @Injectable()
 export class AccountsService {
+  private readonly logger = new Logger(AccountsService.name);
+  private readonly encryptionKey: string;
+
   constructor(
     @InjectRepository(Account)
     private accountsRepository: Repository<Account>,
     private configService: ConfigService,
     private jwtService: JwtService,
     private stellarService: StellarService,
-  ) {}
+  ) {
+    this.encryptionKey = this.configService.getOrThrow<string>(
+      'stellar.encryptionKey',
+    );
+  }
 
   public async create(
     createAccountDto: CreateAccountDto,
@@ -104,14 +113,6 @@ export class AccountsService {
     // Calculate expiry timestamp
     const expiresAt = new Date(Date.now() + createAccountDto.expiresIn * 1000);
 
-    // Create account on Stellar
-    const txHash = await this.stellarService.createEphemeralAccount({
-      publicKey: ephemeralKeypair.publicKey(),
-      amount: createAccountDto.amount,
-      asset: createAccountDto.asset,
-      expiresAt,
-    });
-
     // Generate claim token
     const claimToken = this.generateClaimToken(ephemeralKeypair.publicKey());
 
@@ -121,14 +122,18 @@ export class AccountsService {
       .update(claimToken)
       .digest('hex');
 
-    // Save to database
+    // Save with INITIALIZING status first so we have a DB record for cleanup
+    // if the Stellar/contract steps fail
     const account = this.accountsRepository.create({
       publicKey: ephemeralKeypair.publicKey(),
-      secretKeyEncrypted: this.encryptSecret(ephemeralKeypair.secret()),
+      secretKeyEncrypted: SecretEncryptionUtil.encrypt(
+        ephemeralKeypair.secret(),
+        this.encryptionKey,
+      ),
       fundingSource: createAccountDto.fundingSource,
       amount: createAccountDto.amount,
       asset: createAccountDto.asset,
-      status: AccountStatus.PENDING_PAYMENT,
+      status: AccountStatus.INITIALIZING,
       claimTokenHash,
       expiresAt,
       metadata: createAccountDto.metadata,
@@ -136,18 +141,46 @@ export class AccountsService {
 
     await this.accountsRepository.save(account);
 
-    // Return response
-    return {
-      accountId: account.id,
-      publicKey: account.publicKey,
-      claimUrl: this.generateClaimUrl(claimToken),
-      txHash,
-      amount: account.amount,
-      asset: account.asset,
-      status: account.status,
-      expiresAt: account.expiresAt,
-      createdAt: account.createdAt,
-    };
+    try {
+      const txHash = await this.stellarService.createEphemeralAccount({
+        publicKey: ephemeralKeypair.publicKey(),
+        amount: createAccountDto.amount,
+        asset: createAccountDto.asset,
+        expiresIn: createAccountDto.expiresIn,
+        recoveryAddress: createAccountDto.fundingSource,
+        contractId: this.configService.getOrThrow<string>(
+          'stellar.contracts.ephemeralAccount',
+        ),
+      });
+
+      // Both Horizon and contract succeeded — advance to real status
+      account.status = AccountStatus.PENDING_PAYMENT;
+      await this.accountsRepository.save(account);
+
+      return {
+        accountId: account.id,
+        publicKey: account.publicKey,
+        claimUrl: this.generateClaimUrl(claimToken),
+        txHash,
+        amount: account.amount,
+        asset: account.asset,
+        status: account.status,
+        expiresAt: account.expiresAt,
+        createdAt: account.createdAt,
+      };
+    } catch (error: unknown) {
+      // Mark as FAILED so the record is traceable but clearly broken
+      account.status = AccountStatus.FAILED;
+      await this.accountsRepository.save(account);
+
+      const message = error instanceof Error ? error.message : String(error);
+      this.logger.error(
+        `Account creation failed for ${ephemeralKeypair.publicKey()}: ${message}`,
+      );
+      // preserve original error if it's an Error, otherwise wrap
+      if (error instanceof Error) throw error;
+      throw new Error(message);
+    }
   }
 
   public async findOne(id: string): Promise<AccountResponseDto> {
@@ -220,20 +253,6 @@ export class AccountsService {
     //   systems and email templates may rely on the shape of this URL.
     const baseUrl = process.env.CLAIM_BASE_URL || 'https://claim.bridgelet.io';
     return `${baseUrl}/c/${token}`;
-  }
-
-  private encryptSecret(secret: string): string {
-    // encryptSecret
-    // -------------
-    // WARNING: MVP placeholder — this must be replaced for production.
-    // - Current implementation: base64 encoding. This is NOT encryption and
-    //   should never be used to store secrets in production systems.
-    // - Recommended: use AES-256-GCM (or KMS-backed envelope encryption) and
-    //   manage keys with a secrets manager. If you change this, provide a
-    //   documented migration path for existing records.
-    // TODO: Implement proper encryption (AES-256)
-    // For MVP, using base64 (NOT SECURE for production)
-    return Buffer.from(secret).toString('base64');
   }
 
   private mapToResponseDto(account: Account): AccountResponseDto {

@@ -5,10 +5,13 @@ export default registerAs('stellar', () => ({
   horizonUrl:
     process.env.STELLAR_HORIZON_URL || 'https://horizon-testnet.stellar.org',
   sorobanRpcUrl:
-    process.env.SOROBAN_RPC_URL || 'https://soroban-testnet.stellar.org',
+    process.env.STELLAR_SOROBAN_RPC_URL ||
+    'https://soroban-testnet.stellar.org',
   fundingSecret: process.env.FUNDING_ACCOUNT_SECRET,
   recoveryPublic: process.env.RECOVERY_ACCOUNT_PUBLIC,
   contracts: {
     ephemeralAccount: process.env.EPHEMERAL_ACCOUNT_CONTRACT_ID,
+    sweepController: process.env.STELLAR_SWEEP_CONTROLLER_CONTRACT_ID,
   },
+  encryptionKey: process.env.ENCRYPTION_KEY || '64_char_hex_string_here',
 }));

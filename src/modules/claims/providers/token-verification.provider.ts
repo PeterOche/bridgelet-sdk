@@ -12,8 +12,8 @@ import jwt from 'jsonwebtoken';
 import { TokenExpiredError, JsonWebTokenError } from 'jsonwebtoken';
 import * as crypto from 'crypto';
 import { Account } from '../../accounts/entities/account.entity.js';
-import { AccountStatus } from '../../accounts/entities/account.entity.js';
 import { ClaimVerificationResponseDto } from '../dto/claim-verification-response.dto.js';
+import { AccountStatus } from '../../accounts/enums/account-status.enum.js';
 
 interface ClaimTokenPayload {
   publicKey: string;
@@ -122,6 +122,12 @@ export class TokenVerificationProvider {
 
   private validateAccountStatus(account: Account): void {
     switch (account.status) {
+      case AccountStatus.INITIALIZING:
+        this.logger.warn(`Account ${account.id} is still being initialized`);
+        throw new BadRequestException(
+          `This account is still being set up` +
+            `Please wait a few seconds and try again`,
+        );
       case AccountStatus.CLAIMED:
         this.logger.warn(`Account ${account.id} has already been claimed`);
         throw new ConflictException('Claim has already been redeemed');

@@ -47,6 +47,14 @@ The following services/imports are currently **commented out** to allow `npm run
      `expiry_ledger` (u32 ledger sequence) required by the contract
    - `expiresAt` Date is currently unused in `StellarService`
    - Conversion formula: `current_ledger + (expiresIn / 5)`
+4. **Sweep Authorization Signature** (`src/modules/sweeps/providers/contract.provider.ts`)
+   - **Current:** `generateAuthSignature()` produces a fake 64-byte stub signature
+   - **Works because:** `EphemeralAccount.verify_sweep_authorization()` in `bridgelet-core`
+     is also a stub that accepts any signature (documented in bridgelet-core README)
+   - **Impact:** Sweep authorization is not cryptographically enforced in development
+   - **Guard:** Method throws if called outside `development` or `test` environments
+   - **Required:** Real Ed25519 signing against the `SweepController`'s `authorized_signer`
+     once `bridgelet-core` implements real verification.
 
 ### Status:
 
@@ -98,7 +106,13 @@ npm install
 cp .env.example .env
 # Edit .env with your configuration
 
-# Run migrations
+# Run database migrations
+# DataSource config : src/config/typeorm.config.ts
+# Migrations        : src/database/migrations/
+#   1718100000000-CreateAccountsTable           (accounts table, status enum, expiredAt, metadata)
+#   1718100001000-CreateClaimsTable              (claims table + FK to accounts)
+#   1718100002000-AddInitializingToAccountStatus (adds INITIALIZING to account_status enum)
+#   1718100003000-CreateWebhooksTable            (webhooks table)
 npm run migration:run
 
 # Start development server
@@ -113,13 +127,21 @@ npm test
 ## or to run specific tests
 npm test -- test_Service_File_Name
 
-##e.g
+## e.g
 npm test -- sweeps.service.spec.ts
 ```
 
 ### Coverage
 
-e.g
+Run the full coverage report (enforces 80% minimum threshold):
+
+```bash
+npm run test:cov
+```
+
+Coverage reports are generated in the `coverage/` directory. The build will fail if any metric (branches, functions, lines, statements) falls below 80%.
+
+To check coverage for a specific file:
 
 ```bash
 npm test -- sweeps.service.spec.ts --coverage

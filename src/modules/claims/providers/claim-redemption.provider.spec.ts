@@ -4,11 +4,11 @@ import { BadRequestException, ConflictException } from '@nestjs/common';
 import { ClaimRedemptionProvider } from './claim-redemption.provider.js';
 import { TokenVerificationProvider } from './token-verification.provider.js';
 import { Claim } from '../entities/claim.entity.js';
-import {
-  Account,
-  AccountStatus,
-} from '../../accounts/entities/account.entity.js';
+import { Account } from '../../accounts/entities/account.entity.js';
 import { SweepsService } from '../../sweeps/sweeps.service.js';
+import { AccountStatus } from '../../accounts/enums/account-status.enum.js';
+import { ConfigService } from '@nestjs/config';
+import { SecretEncryptionUtil } from '../../../common/crypto/secret-encryption.util.js';
 
 describe('ClaimRedemptionProvider', () => {
   let provider: ClaimRedemptionProvider;
@@ -87,9 +87,19 @@ describe('ClaimRedemptionProvider', () => {
           provide: SweepsService,
           useValue: mockSweepsService,
         },
+        {
+          provide: ConfigService,
+          useValue: {
+            get: jest.fn().mockReturnValue('mock-value'),
+            getOrThrow: jest.fn().mockReturnValue(
+              'a'.repeat(64), // 64 hex chars = 32 bytes
+            ),
+          },
+        },
       ],
     }).compile();
 
+    jest.spyOn(SecretEncryptionUtil, 'decrypt').mockReturnValue('test-secret');
     provider = module.get<ClaimRedemptionProvider>(ClaimRedemptionProvider);
 
     // Default happy-path mocks shared across tests
@@ -109,6 +119,22 @@ describe('ClaimRedemptionProvider', () => {
 
   afterEach(() => {
     jest.clearAllMocks();
+  });
+
+  describe('validateAccountStatus', () => {
+    it('throws BadRequestException with setup message for INITIALIZING status', async () => {
+      mockTokenVerificationProvider.verifyClaimToken.mockRejectedValue(
+        new BadRequestException('This account is still being set up'),
+      );
+
+      await expect(
+        provider.redeemClaim(VALID_TOKEN, VALID_DESTINATION),
+      ).rejects.toThrow(BadRequestException);
+
+      await expect(
+        provider.redeemClaim(VALID_TOKEN, VALID_DESTINATION),
+      ).rejects.toThrow('still being set up');
+    });
   });
 
   describe('redeemClaim - successful redemption', () => {
