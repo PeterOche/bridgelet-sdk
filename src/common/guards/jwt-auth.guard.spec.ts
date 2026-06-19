@@ -14,7 +14,7 @@ const mockExecutionContext = (authHeader?: string): ExecutionContext =>
 
 describe('JwtAuthGuard', () => {
   let guard: JwtAuthGuard;
-  let jwtService: jest.Mocked<JwtService>;
+  let jwtService: { verifyAsync: jest.Mock };
 
   beforeEach(async () => {
     const module: TestingModule = await Test.createTestingModule({
@@ -28,7 +28,7 @@ describe('JwtAuthGuard', () => {
     }).compile();
 
     guard = module.get<JwtAuthGuard>(JwtAuthGuard);
-    jwtService = module.get<JwtService>(JwtService) as jest.Mocked<JwtService>;
+    jwtService = module.get<JwtService>(JwtService);
   });
 
   it('allows request with a valid Bearer token', async () => {
