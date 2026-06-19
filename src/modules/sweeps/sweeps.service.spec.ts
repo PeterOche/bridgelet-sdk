@@ -54,32 +54,24 @@ describe('SweepsService', () => {
 
   beforeEach(async () => {
     validationProvider = {
-      validateSweepParameters: jest
-        .fn<() => Promise<void>>()
-        .mockResolvedValue(undefined),
-      canSweep: jest.fn<() => Promise<boolean>>().mockResolvedValue(true),
-      getSweepStatus: jest
-        .fn<() => Promise<{ canSweep: boolean }>>()
-        .mockResolvedValue({ canSweep: true }),
+      validateSweepParameters: jest.fn<any>().mockResolvedValue(undefined),
+      canSweep: jest.fn<any>().mockResolvedValue(true),
+      getSweepStatus: jest.fn<any>().mockResolvedValue({ canSweep: true }),
     };
 
     contractProvider = {
       generateAuthSignature: jest
-        .fn<() => Buffer>()
+        .fn<any>()
         .mockReturnValue(MOCK_AUTH_SIGNATURE),
-      generateAuthHash: jest
-        .fn<() => string>()
-        .mockReturnValue(MOCK_CONTRACT_AUTH_HASH),
+      generateAuthHash: jest.fn<any>().mockReturnValue(MOCK_CONTRACT_AUTH_HASH),
     };
 
     transactionProvider = {
-      executeSweepTransaction: jest
-        .fn<() => Promise<typeof mockTxResult>>()
-        .mockResolvedValue(mockTxResult),
+      executeSweepTransaction: jest.fn<any>().mockResolvedValue(mockTxResult),
     };
 
     stellarService = {
-      executeSweep: jest.fn<() => Promise<void>>().mockResolvedValue(undefined),
+      executeSweep: jest.fn<any>().mockResolvedValue(undefined),
     };
 
     const configMock = {
