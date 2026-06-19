@@ -1,7 +1,6 @@
 import { ExecutionContext, UnauthorizedException } from '@nestjs/common';
 import { JwtService } from '@nestjs/jwt';
-import { Test, TestingModule } from '@nestjs/testing';
-import { JwtAuthGuard } from './jwt-auth.guard';
+import { JwtAuthGuard } from './jwt-auth.guard.js';
 
 const mockExecutionContext = (authHeader?: string): ExecutionContext =>
   ({
@@ -14,21 +13,13 @@ const mockExecutionContext = (authHeader?: string): ExecutionContext =>
 
 describe('JwtAuthGuard', () => {
   let guard: JwtAuthGuard;
-  let jwtService: { verifyAsync: jest.Mock };
+  let jwtService: jest.Mocked<JwtService>;
 
-  beforeEach(async () => {
-    const module: TestingModule = await Test.createTestingModule({
-      providers: [
-        JwtAuthGuard,
-        {
-          provide: JwtService,
-          useValue: { verifyAsync: jest.fn() },
-        },
-      ],
-    }).compile();
-
-    guard = module.get<JwtAuthGuard>(JwtAuthGuard);
-    jwtService = module.get<JwtService>(JwtService);
+  beforeEach(() => {
+    jwtService = {
+      verifyAsync: jest.fn(),
+    } as unknown as jest.Mocked<JwtService>;
+    guard = new JwtAuthGuard(jwtService);
   });
 
   it('allows request with a valid Bearer token', async () => {
