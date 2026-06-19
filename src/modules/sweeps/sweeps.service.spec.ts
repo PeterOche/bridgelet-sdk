@@ -238,6 +238,31 @@ describe('SweepsService', () => {
         'Horizon payment failed',
       );
     });
+
+    it('logs a CRITICAL error when the Horizon payment fails after contract authorization', async () => {
+      const horizonError = new Error('Horizon payment failed');
+      transactionProvider.executeSweepTransaction.mockRejectedValue(
+        horizonError,
+      );
+
+      // Spy on the service's private logger
+      const loggerErrorSpy = jest
+        .spyOn(service['logger'], 'error')
+        .mockImplementation(() => {});
+
+      await expect(service.executeSweep(validRequest)).rejects.toThrow(
+        'Horizon payment failed',
+      );
+
+      expect(loggerErrorSpy).toHaveBeenCalledWith(
+        expect.stringContaining('CRITICAL'),
+        horizonError.stack,
+      );
+      expect(loggerErrorSpy).toHaveBeenCalledWith(
+        expect.stringContaining(validRequest.accountId),
+        horizonError.stack,
+      );
+    });
   });
 
   // -------------------------------------------------------------------------
@@ -261,7 +286,7 @@ describe('SweepsService', () => {
       validationProvider.getSweepStatus.mockResolvedValue({
         canSweep: false,
         reason: 'expired',
-      });
+      } as any);
       const result = await service.getSweepStatus('account-id');
       expect(validationProvider.getSweepStatus).toHaveBeenCalledWith(
         'account-id',

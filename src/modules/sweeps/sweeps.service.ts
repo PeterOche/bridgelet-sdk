@@ -6,6 +6,7 @@ import { TransactionProvider } from './providers/transaction.provider.js';
 import { StellarService } from '../stellar/stellar.service.js';
 import type { SweepExecutionRequest } from './interfaces/execute-sweep.interface.js';
 import type { SweepResult } from './interfaces/sweep-result.interface.js';
+import { TransactionResult } from './interfaces/transaction-result.interface.js';
 
 @Injectable()
 export class SweepsService {
@@ -24,10 +25,15 @@ export class SweepsService {
    * transfer funds via a classic Horizon payment.
    *
    * Flow:
+   * Order of operations is strict and intentional:
    *   1. Validate sweep parameters
    *   2. Generate auth signature (MVP stub — see ContractProvider)
    *   3. Submit SweepController.execute_sweep() on Soroban
    *   4. Execute the Horizon payment to move funds
+   *
+   * ⚠️ If Step 3 succeeds but Step 4 fails, the contract will be in Swept
+   * state but no funds will have moved. This is logged as a critical error
+   * for manual recovery. Do not retry automatically.
    */
   public async executeSweep(
     sweepExecutionRequest: SweepExecutionRequest,
@@ -67,28 +73,43 @@ export class SweepsService {
       `Contract sweep authorized for account ${sweepExecutionRequest.accountId}`,
     );
 
-    // Step 4: Execute the classic Horizon payment to move funds
-    const txResult = await this.transactionProvider.executeSweepTransaction({
-      ephemeralSecret: sweepExecutionRequest.ephemeralSecret,
-      destinationAddress: sweepExecutionRequest.destinationAddress,
-      amount: sweepExecutionRequest.amount,
-      asset: sweepExecutionRequest.asset,
-    });
-
-    this.logger.log(`Sweep complete: txHash=${txResult.hash}`);
-
+    // Compute auth hash before Step 4 so it's available in the catch block
     const contractAuthHash = this.contractProvider.generateAuthHash(
       sweepExecutionRequest.ephemeralPublicKey,
       sweepExecutionRequest.destinationAddress,
     );
 
+    // Step 4: Execute the classic Horizon payment to move funds
+    let transactionResult: TransactionResult;
+    try {
+      transactionResult =
+        await this.transactionProvider.executeSweepTransaction({
+          ephemeralSecret: sweepExecutionRequest.ephemeralSecret,
+          destinationAddress: sweepExecutionRequest.destinationAddress,
+          amount: sweepExecutionRequest.amount,
+          asset: sweepExecutionRequest.asset,
+        });
+    } catch (error) {
+      // Contract is now in Swept state but funds did not move.
+      // This requires manual recovery — log with full context.
+      this.logger.error(
+        `CRITICAL: Contract authorized but transaction failed for account ` +
+          `${sweepExecutionRequest.accountId}. Contract auth hash: ${contractAuthHash}. ` +
+          `Error: ${(error as Error).message}`,
+        (error as Error).stack,
+      );
+      throw error;
+    }
+
+    this.logger.log(`Sweep complete: txHash=${transactionResult.hash}`);
+
     return {
       success: true,
-      txHash: txResult.hash,
+      txHash: transactionResult.hash,
       contractAuthHash,
       amountSwept: sweepExecutionRequest.amount,
       destination: sweepExecutionRequest.destinationAddress,
-      timestamp: txResult.timestamp,
+      timestamp: transactionResult.timestamp,
     };
   }
 
