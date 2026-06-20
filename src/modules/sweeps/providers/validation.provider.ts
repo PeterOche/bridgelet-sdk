@@ -31,7 +31,9 @@ export class ValidationProvider {
     );
 
     // Validate destination address
-    StellarAddressValidator.assertValid(sweepExecutionRequest.destinationAddress);
+    StellarAddressValidator.assertValid(
+      sweepExecutionRequest.destinationAddress,
+    );
 
     // Validate account exists and is in correct state
     const account = await this.accountRepository.findOne({

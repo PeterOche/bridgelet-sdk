@@ -6,8 +6,7 @@ describe('StellarAddressValidator', () => {
     'GDV3BRGE2BXK5JMGAEDGE5QWAY2DBK5V2KEG762Y5GH4LPC5RSPRPTTJ';
   const wrongPrefix =
     'ADV3BRGE2BXK5JMGAEDGE5QWAY2DBK5V2KEG762Y5GH4LPC5RSPRPTTJ';
-  const wrongLength =
-    'GDV3BRGE2BXK5JMGAEDGE5QWAY2DBK5V2KEG762Y5GH4LPC5RSPRPTT'; // Too short
+  const wrongLength = 'GDV3BRGE2BXK5JMGAEDGE5QWAY2DBK5V2KEG762Y5GH4LPC5RSPRPTT'; // Too short
   const invalidChecksum =
     'GDV3BRGE2BXK5JMGAEDGE5QWAY2DBK5V2KEG762Y5GH4LPC5RSPRPTTA'; // Tampered last char
 
@@ -40,7 +39,9 @@ describe('StellarAddressValidator', () => {
 
   describe('assertValid', () => {
     it('should not throw for a valid address', () => {
-      expect(() => StellarAddressValidator.assertValid(validAddress)).not.toThrow();
+      expect(() =>
+        StellarAddressValidator.assertValid(validAddress),
+      ).not.toThrow();
     });
 
     it('should throw BadRequestException for invalid addresses', () => {
